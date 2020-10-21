@@ -188,3 +188,4 @@ public class Current
         return "ClassPojo [sunrise = "+sunrise+", temp = "+temp+", visibility = "+visibility+", uvi = "+uvi+", pressure = "+pressure+", clouds = "+clouds+", feels_like = "+feels_like+", wind_gust = "+wind_gust+", dt = "+dt+", wind_deg = "+wind_deg+", dew_point = "+dew_point+", sunset = "+sunset+", weather = "+weather+", humidity = "+humidity+", wind_speed = "+wind_speed+"]";
     }
 }
+
