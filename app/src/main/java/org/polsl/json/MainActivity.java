@@ -1,8 +1,9 @@
 package org.polsl.json;
 
-import androidx.appcompat.app.AppCompatActivity;
+
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+
 
 import android.Manifest;
 import android.app.Activity;
@@ -15,9 +16,17 @@ import android.location.LocationProvider;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.HorizontalScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.MapView;
+import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.gson.Gson;
 
 import java.io.IOException;
@@ -27,14 +36,14 @@ import java.net.MalformedURLException;
 import java.net.URL;
 
 
-public class MainActivity extends Activity implements LocationListener {
+public class MainActivity extends Activity implements LocationListener, OnMapReadyCallback {
 
     private Forecast weather;
     private LocationManager locationManager;
     private LocationProvider locationProvider;
     private Double latitude;
     private Double longitude;
-
+    private MapView mapView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,19 +59,41 @@ public class MainActivity extends Activity implements LocationListener {
         latitude = loc.getLatitude();
         longitude = loc.getLongitude();
 
+        mapView = (MapView) findViewById(R.id.mapView);
+        mapView.onCreate(Bundle.EMPTY);
+        mapView.getMapAsync(this);
+
 
         new Connection().execute(weather);
+
         try {
-            Thread.sleep(1000);
+            Thread.sleep(2000);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
 
-
+        TextView temperature = (TextView) findViewById(R.id.temperature);
+        temperature.setText(this.weather.getCurrent().getTemp() + " °C");
+        TextView feel = (TextView) findViewById(R.id.Feels);
+        feel.setText(this.weather.getCurrent().getFeels_like() + " °C");
+        TextView cloud = (TextView) findViewById(R.id.Cloud);
+        cloud.setText(this.weather.getCurrent().getClouds() + " %");
+        TextView wind = (TextView) findViewById(R.id.Wind);
+        wind.setText(this.weather.getCurrent().getWind_speed() + " km/h");
+       System.out.println(weather.toString());
     }
     public void Draw(View view){
         TextView temperature = (TextView) findViewById(R.id.temperature);
         temperature.setText(this.weather.getCurrent().getTemp() + " °C");
+        TextView feel = (TextView) findViewById(R.id.Feels);
+        feel.setText(this.weather.getCurrent().getFeels_like() + " °C");
+        TextView cloud = (TextView) findViewById(R.id.Cloud);
+        cloud.setText(this.weather.getCurrent().getClouds() + " %" );
+        TextView wind = (TextView) findViewById(R.id.Wind);
+        wind.setText(this.weather.getCurrent().getWind_speed() + " km/h");
+        //setContentView(R.layout.activity_maps);
+//        MapView map = (MapView) findViewById(R.id.mapView);
+
     }
 
     public Forecast Download() {
@@ -104,11 +135,12 @@ public class MainActivity extends Activity implements LocationListener {
 
     @Override
     public void onLocationChanged(Location location) {
-        Toast.makeText(
-                getBaseContext(),
-                "Location changed: Lat: ", Toast.LENGTH_SHORT).show();
+
          latitude =  location.getLatitude();
          longitude =  location.getLongitude();
+        Toast.makeText(
+                getBaseContext(),
+                "Location changed: "+longitude+"Lat: "+latitude, Toast.LENGTH_SHORT).show();
     }
 
     @Override
@@ -125,6 +157,18 @@ public class MainActivity extends Activity implements LocationListener {
     public void onProviderDisabled(String provider) {
 
     }
+
+    @Override
+    public void onMapReady(GoogleMap googleMap) {
+
+        googleMap.getUiSettings().setAllGesturesEnabled(false);
+        LatLng location = new LatLng(latitude, longitude);
+        googleMap.addMarker(new MarkerOptions()
+                .position(location)
+                .title("Your Location"));
+        googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(location, 10));
+    }
+
 
     public class Connection extends AsyncTask<Forecast, Void, Forecast> {
 
@@ -178,6 +222,32 @@ public class MainActivity extends Activity implements LocationListener {
             // permissions this app might request
         }
     }
+
+    @Override
+    protected void onResume() {
+        mapView.onResume();
+        super.onResume();
+    }
+
+    @Override
+    protected void onPause() {
+        mapView.onPause();
+        super.onPause();
+    }
+
+    @Override
+    protected void onDestroy() {
+        mapView.onDestroy();
+        super.onDestroy();
+    }
+
+    @Override
+    public void onLowMemory() {
+        mapView.onLowMemory();
+        super.onLowMemory();
+    }
+
+
 
 }
 
