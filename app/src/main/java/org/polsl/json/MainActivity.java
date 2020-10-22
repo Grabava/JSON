@@ -16,7 +16,6 @@ import android.location.LocationProvider;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.HorizontalScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -39,8 +38,6 @@ import java.net.URL;
 public class MainActivity extends Activity implements LocationListener, OnMapReadyCallback {
 
     private Forecast weather;
-    private LocationManager locationManager;
-    private LocationProvider locationProvider;
     private Double latitude;
     private Double longitude;
     private MapView mapView;
@@ -51,36 +48,39 @@ public class MainActivity extends Activity implements LocationListener, OnMapRea
         setContentView(R.layout.activity_main);
         checkPermission(
                 Manifest.permission.ACCESS_FINE_LOCATION, 100);
-        locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 
         locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 5000, 10, this);
-        locationProvider = locationManager.getProvider(LocationManager.GPS_PROVIDER);
+        LocationProvider locationProvider = locationManager.getProvider(LocationManager.GPS_PROVIDER);
         Location loc = locationManager.getLastKnownLocation(locationProvider.getName());
         latitude = loc.getLatitude();
         longitude = loc.getLongitude();
 
-        mapView = (MapView) findViewById(R.id.mapView);
-        mapView.onCreate(Bundle.EMPTY);
-        mapView.getMapAsync(this);
-
-
         new Connection().execute(weather);
 
         try {
-            Thread.sleep(2000);
+            Thread.sleep(1000);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
 
-        TextView temperature = (TextView) findViewById(R.id.temperature);
-        temperature.setText(this.weather.getCurrent().getTemp() + " °C");
-        TextView feel = (TextView) findViewById(R.id.Feels);
-        feel.setText(this.weather.getCurrent().getFeels_like() + " °C");
-        TextView cloud = (TextView) findViewById(R.id.Cloud);
-        cloud.setText(this.weather.getCurrent().getClouds() + " %");
-        TextView wind = (TextView) findViewById(R.id.Wind);
-        wind.setText(this.weather.getCurrent().getWind_speed() + " km/h");
-       System.out.println(weather.toString());
+        mapView = (MapView) findViewById(R.id.mapView);
+        mapView.onCreate(Bundle.EMPTY);
+        mapView.getMapAsync(this);
+        if(weather.getCurrent() == null){
+            Toast.makeText(MainActivity.this, "Unable to get data from server please reload", Toast.LENGTH_SHORT).show();
+
+        }else {
+            TextView temperature = (TextView) findViewById(R.id.temperature);
+            temperature.setText(this.weather.getCurrent().getTemp() + " °C");
+            TextView feel = (TextView) findViewById(R.id.Feels);
+            feel.setText(this.weather.getCurrent().getFeels_like() + " °C");
+            TextView cloud = (TextView) findViewById(R.id.Cloud);
+            cloud.setText(this.weather.getCurrent().getClouds() + " %");
+            TextView wind = (TextView) findViewById(R.id.Wind);
+            wind.setText(this.weather.getCurrent().getWind_speed() + " km/h");
+        }
+
     }
     public void Draw(View view){
         TextView temperature = (TextView) findViewById(R.id.temperature);
@@ -91,10 +91,9 @@ public class MainActivity extends Activity implements LocationListener, OnMapRea
         cloud.setText(this.weather.getCurrent().getClouds() + " %" );
         TextView wind = (TextView) findViewById(R.id.Wind);
         wind.setText(this.weather.getCurrent().getWind_speed() + " km/h");
-        //setContentView(R.layout.activity_maps);
-//        MapView map = (MapView) findViewById(R.id.mapView);
 
     }
+
 
     public Forecast Download() {
 
@@ -123,7 +122,8 @@ public class MainActivity extends Activity implements LocationListener, OnMapRea
 
 
             } else {
-                // Błąd - można wyświetlić komunikat
+
+                Toast.makeText(MainActivity.this, "Unable to connect to server", Toast.LENGTH_SHORT).show();
 
             }
         } catch (IOException e) {
@@ -138,9 +138,6 @@ public class MainActivity extends Activity implements LocationListener, OnMapRea
 
          latitude =  location.getLatitude();
          longitude =  location.getLongitude();
-        Toast.makeText(
-                getBaseContext(),
-                "Location changed: "+longitude+"Lat: "+latitude, Toast.LENGTH_SHORT).show();
     }
 
     @Override
@@ -163,9 +160,7 @@ public class MainActivity extends Activity implements LocationListener, OnMapRea
 
         googleMap.getUiSettings().setAllGesturesEnabled(false);
         LatLng location = new LatLng(latitude, longitude);
-        googleMap.addMarker(new MarkerOptions()
-                .position(location)
-                .title("Your Location"));
+        googleMap.addMarker(new MarkerOptions().position(location).title("Your Location"));
         googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(location, 10));
     }
 
@@ -206,8 +201,7 @@ public class MainActivity extends Activity implements LocationListener, OnMapRea
             case 1: {
 
                 // If request is cancelled, the result arrays are empty.
-                if (grantResults.length > 0
-                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
 
 
                 } else {
@@ -218,8 +212,7 @@ public class MainActivity extends Activity implements LocationListener, OnMapRea
                 return;
             }
 
-            // other 'case' lines to check for other
-            // permissions this app might request
+
         }
     }
 
